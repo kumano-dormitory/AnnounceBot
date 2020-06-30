@@ -1,26 +1,58 @@
-var properties = PropertiesService.getScriptProperties();
-var slackAccessToken = properties.getProperty('slackAccessToken');
-var slackVerificationToken = properties.getProperty('slackVerificationToken');
-var slackApp = SlackApp.create(slackAccessToken);
+const properties = PropertiesService.getScriptProperties();
+const slackAccessToken = properties.getProperty('slackAccessToken');
+const slackVerificationToken = properties.getProperty('slackVerificationToken');
+const slackApp = SlackApp.create(slackAccessToken);
+const discordWebhookUrl = properties.getProperty('discordWebhookUrl');
+const discordWebhookToken = properties.getProperty('discordWebhookToken');
 
-function postTobottest(content) {
-  var channelId = "#bottest"; // 対象チャンネル
-  var message = content;      // 投稿するメッセージ
-  var options = {}
-  slackApp.postMessage(channelId, message, options);
-  return;
+function slackPostTobottest(content) {
+  const channelId = "#bottest"; // 対象チャンネル
+  const message = content;      // 投稿するメッセージ
+  const options = {}
+  const response = slackApp.postMessage(channelId, message, options);
+  return response;
+}
+
+function discordPost(content) {
+  const url = discordWebhookUrl;      //discordのwebhooksのurl
+  const token = discordWebhookToken;  //discordのwebhooksのトークン
+  const channel = '#general';         //送信したいチャンネル
+  const text = content;
+  const username = 'AnnounceBot';     //送信させたいユーザー名
+  const parse = 'full';
+  const method = 'post';
+
+  const payload = {
+    'token': token,
+    'channel': channel,
+    "content": text,
+    'username': username,
+    'parse': parse,
+  };
+
+  const params = {
+    'method': method,
+    'payload': payload,
+    'muteHttpExceptions': true
+
+  };
+
+
+  const response = UrlFetchApp.fetch(url, params);
+  //Logger.log(response.getContentText());
+  return response;
 }
 
 function doPost(e) {
   if (e.parameter.payload) { //ボタンから
-    var payload = JSON.parse(e["parameter"]["payload"]);
-    var token = payload["token"];
-    var name = payload["actions"][0]["name"];
-    var value = payload["actions"][0]["value"];
-    var text = properties.getProperty(value);
+    const payload = JSON.parse(e["parameter"]["payload"]);
+    const token = payload["token"];
+    const name = payload["actions"][0]["name"];
+    const value = payload["actions"][0]["value"];
+    let text = properties.getProperty(value);
 
-    //scriptPropertyの反映に時間がかかる場合があるので最大50秒待つ
-    for (var i = 0; text == null && i < 100; i++) {
+    //scriptPropertyの反映に時間がかかる場合があるので最大60秒待つ
+    for (let i = 0; text == null && i < 120; i++) {
       text = properties.getProperty(value);
       Utilities.sleep(500);
     }
@@ -36,12 +68,15 @@ function doPost(e) {
 
     if (name == "yes1") {
       //ブロックLINE，全寮LINE，discordへポスト
-      postTobottest("全寮LINE，discord，ブロックLINEへの周知\n\n" + text);
+      const content = "全寮LINE，discord，ブロックLINEへの周知\n\n" + text;
+      slackPostTobottest(content);
+      discordPost(content).getResponseCode();
       return ContentService.createTextOutput(text + "\n\nを全寮LINE，discord，ブロックLINEへ周知しました。");
     }
     else if (name = "yes2") {
       //ブロックLINEのみにポスト
-      postTobottest("ブロックLINEへの周知\n\n" + text);
+      const content = "ブロックLINEへの周知\n\n" + text;
+      slackPostTobottest(content);
       return ContentService.createTextOutput(text + "\n\nをブロックLINEのみに周知しました。");
     }
     else if (name == "no") {
@@ -55,14 +90,14 @@ function doPost(e) {
       throw new Error(e.parameter.token);
     }
 
-    var messageId = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyyMMddHHmmssSSS') + Math.floor(Math.random() * 1000);
+    const messageId = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyyMMddHHmmssSSS') + Math.floor(Math.random() * 1000);
     properties.setProperty(messageId, e.parameter.text);
 
     if (e.parameter.text == "") {
       return ContentService.createTextOutput("こんにちは。SC周知Botです。\nLINE等に周知を行うには `/announce` のあとに周知内容を入力して送信してください");
     }
 
-    var data = {
+    const data = {
       "text": "こんにちは。SC周知Botです。", //アタッチメントではない通常メッセージ
       "response_type": "ephemeral", // ここを"ephemeral"から"in_chanel"に変えると他の人にも表示されるらしい（？）
       //アタッチメント部分
@@ -109,11 +144,11 @@ function doGet(e) {
   }
   switch (e.parameter.mode) {
     case '1':
-      postTobottest("全寮LINE，discord，ブロックLINEへの周知\n\n" + e.parameter.text);
+      slackPostTobottest("全寮LINE，discord，ブロックLINEへの周知\n\n" + e.parameter.text);
       return ContentService.createTextOutput("全寮LINE，discord，ブロックLINEへの周知\n\n" + e.parameter.text);
       break;
     case '2':
-      postTobottest("ブロックLINEへの周知\n\n" + e.parameter.text);
+      slackPostTobottest("ブロックLINEへの周知\n\n" + e.parameter.text);
       return ContentService.createTextOutput("ブロックLINEへの周知\n\n" + e.parameter.text);
       break;
     default:
