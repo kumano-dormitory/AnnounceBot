@@ -5,7 +5,7 @@ function sendHttpPostToLINEBot(mode,message,from) {
   {
     "method": "post",
     "payload":{
-      "mode": mode, //0:ブロックLINEのみ，1:全寮LINEにも送る
+      "mode": mode, //0:ブロックLINEのみ，1:全寮LINEとdiscordにも送る
       "message": message,  //周知する文字列
       "from": from　//発言者かグループの名前
     }

@@ -8,7 +8,7 @@ function discordPost(content) {
       'token': discordWebhookToken,  //discordのwebhooksのトークン
       'channel': '#一般',         //送信したいチャンネル
       "content": content,
-      'username': 'SC周知bot',     //送信させたいユーザー名
+      'username': '周知さん',     //送信させたいユーザー名
       'parse': 'full'
     },
     'muteHttpExceptions': true
@@ -20,5 +20,5 @@ function discordPost(content) {
   }
   
   //Logger.log(response.getContentText());
-  return 0;
+  return response;
 }
