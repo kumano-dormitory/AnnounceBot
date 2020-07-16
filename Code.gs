@@ -6,7 +6,8 @@ function doPost(e) {
     const token = payload["token"];
     const name = payload["actions"][0]["name"];
     const value = payload["actions"][0]["value"];
-    const user = JSON.parse(UrlFetchApp.fetch("https://slack.com/api/users.profile.get?token=" + slackAccessToken + "&user=" + payload["user"]["id"] + "&pretty=1")).profile.display_name;
+    const userId = payload["user"]["id"];
+    const user = JSON.parse(UrlFetchApp.fetch("https://slack.com/api/users.profile.get?token=" + slackAccessToken + "&user=" + userId + "&pretty=1")).profile.display_name;
     let text;
     
     //slack以外からのアクセスでないかチェック
@@ -31,7 +32,7 @@ function doPost(e) {
       //ブロックLINEのみにポスト
       sendHttpPostToLINEBot(0,text,user);
       slackPost(user + "がブロックLINEへの周知を行いました", text);
-      record('0',text,user);
+      record('0',text,user,userId);
       return ContentService.createTextOutput(text + "\n\nをブロックLINEのみに周知しました。");
     }
     else if (name == "yes1") {
@@ -39,7 +40,7 @@ function doPost(e) {
       sendHttpPostToLINEBot(1,text,user);
       discordPost(text);
       slackPost(user + "全寮LINE，discord，ブロックLINEへの周知を行いました",text);
-      record('1',text,user);
+      record('1',text,user,userId);
       return ContentService.createTextOutput(text + "\n\nを全寮LINE，discord，ブロックLINEへ周知しました。");
     }
     return ContentService.createTextOutput("エラーが発生しました。\nもう一度最初から操作してください\n" + JSON.stringify(e));
@@ -97,40 +98,20 @@ function doPost(e) {
     };
     return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
   }
-  
-  else{
-    const mode = e.parameter.mode;
-    const text = e.parameter.message;
-    const user = e.parameter.from;
-    record(mode,text,user);
-    switch(mode){
-      case '0':
-        //ブロックLINEのみにポスト
-        slackPost(user + "がブロックLINEへの周知を行いました", text);
-        return ContentService.createTextOutput("Successfuly posted to Slack!");
-        break;
-      case '1':
-        //ブロックLINE，全寮LINE，discordへポスト
-        discordPost(text);
-        slackPost(user + "全寮LINE，discord，ブロックLINEへの周知を行いました",text);
-        return ContentService.createTextOutput("Successfuly posted to Slack and discord!");
-        break;
-      default:
-        return ContentService.createTextOutput("Mode must be 0 or 1");
-    }
-  }
 }
 
-function record(mode,text,user){
+function record(mode,text,user,userId){
   const book = SpreadsheetApp.openById(properties.getProperty('SpreadSheetId'));
-  const range = book.getSheetByName("シート1").getDataRange();
+  let sheet = book.getSheetByName("シート1");
+  const range = sheet.getDataRange();
   const row = range.getLastRow() + 1;
   
   const time = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd/HH:mm:ss.SSS');
   sheet.getRange(row, 1).setValue(time);
   sheet.getRange(row, 2).setValue(user);
-  sheet.getRange(row, 3).setValue(mode);
-  sheet.getRange(row, 4).setValue(text);
+  sheet.getRange(row, 3).setValue(userId);
+  sheet.getRange(row, 4).setValue(mode);
+  sheet.getRange(row, 5).setValue(text);
   
   return 0;
 }
