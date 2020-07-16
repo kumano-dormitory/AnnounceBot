@@ -72,11 +72,15 @@ GASのslackAppライブラリは使わないことにした。自分でpost投�
 const options =
   {
     "method": "post",
-    "payload":{
-      "mode": mode,         //0:ブロックLINEのみ，1:全寮LINEにも送る
-      "message": message,   //周知する文字列
-      "from": from　        //発言者かグループの名前
-    }
+    'contentType': 'application/json',
+    "payload": JSON.stringify(
+      {
+        "mode": mode, //0:ブロックLINEのみ，1:全寮LINEとdiscordにも送る
+        "message": message,  //周知する文字列
+        "from": from　//発言者かグループの名前
+      })
   };
 ```
 ## その他
+LINEから投稿する機能はなくなった。  
+ボタンを押してもメッセージが変わらないことがある。なんで？
