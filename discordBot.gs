@@ -15,10 +15,7 @@ function discordPost(content) {
 
   };
   const response = UrlFetchApp.fetch(discordWebhookUrl, params);
-  while(response.getResponseCode() != 200){
-    response = UrlFetchApp.fetch(discordWebhookUrl, params);
-  }
-  
+
   //Logger.log(response.getContentText());
   return response;
 }
