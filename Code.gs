@@ -1,13 +1,16 @@
 const properties = PropertiesService.getScriptProperties();
 
 function doPost(e) {
+  console.log("doPost(e):\n" + e);
   if (e.parameter.payload) { //ボタンから
     const payload = JSON.parse(e["parameter"]["payload"]);
     const token = payload["token"];
     const name = payload["actions"][0]["name"];
     const value = payload["actions"][0]["value"];
     const userId = payload["user"]["id"];
-    const user = JSON.parse(UrlFetchApp.fetch("https://slack.com/api/users.profile.get?token=" + slackAccessToken + "&user=" + userId + "&pretty=1")).profile.display_name;
+    const user = JSON.parse(UrlFetchApp.fetch("https://slack.com/api/users.profile.get?token=" + slackAccessToken + "&user=" + userId + "&pretty=1"));
+    const displayName = user.profile.display_name;
+    const realName = user.profile.real_name;
     let text;
     
     //slack以外からのアクセスでないかチェック
@@ -30,17 +33,17 @@ function doPost(e) {
     }
     else if (name == "yes2") {
       //ブロックLINEのみにポスト
-      sendHttpPostToLINEBot(0,text,user);
-      slackPost(user + "がブロックLINEへの周知を行いました", text);
-      record('0',text,user,userId);
+      record('0',text,displayName,realName,userId);
+      sendHttpPostToLINEBot(0,text,realName + "(" + displayName + ")");
+      slackPost(realName + "(" + displayName + ")" + "がブロックLINEへの周知を行いました", text);
       return ContentService.createTextOutput(text + "\n\nをブロックLINEのみに周知しました。");
     }
     else if (name == "yes1") {
       //ブロックLINE，全寮LINE，discordへポスト
-      sendHttpPostToLINEBot(1,text,user);
+      record('1',text,displayName,realName,userId);
+      sendHttpPostToLINEBot(1,text,realName + "(" + displayName + ")");
+      slackPost(realName + "(" + displayName + ")" + "が全寮LINE，discord，ブロックLINEへの周知を行いました",text);
       discordPost(text);
-      slackPost(user + "全寮LINE，discord，ブロックLINEへの周知を行いました",text);
-      record('1',text,user,userId);
       return ContentService.createTextOutput(text + "\n\nを全寮LINE，discord，ブロックLINEへ周知しました。");
     }
     return ContentService.createTextOutput("エラーが発生しました。\nもう一度最初から操作してください\n" + JSON.stringify(e));
@@ -100,7 +103,7 @@ function doPost(e) {
   }
 }
 
-function record(mode,text,user,userId){
+function record(mode,text,displayName,realName,userId){
   const book = SpreadsheetApp.openById(properties.getProperty('SpreadSheetId'));
   let sheet = book.getSheetByName("シート1");
   const range = sheet.getDataRange();
@@ -108,10 +111,11 @@ function record(mode,text,user,userId){
   
   const time = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd/HH:mm:ss.SSS');
   sheet.getRange(row, 1).setValue(time);
-  sheet.getRange(row, 2).setValue(user);
-  sheet.getRange(row, 3).setValue(userId);
-  sheet.getRange(row, 4).setValue(mode);
-  sheet.getRange(row, 5).setValue(text);
+  sheet.getRange(row, 2).setValue(displayName);
+  sheet.getRange(row, 3).setValue(realName);
+  sheet.getRange(row, 4).setValue(userId);
+  sheet.getRange(row, 5).setValue(mode);
+  sheet.getRange(row, 6).setValue(text);
   
   return 0;
 }
