@@ -1,5 +1,10 @@
 const properties = PropertiesService.getScriptProperties();
 
+
+/*
+* slackからPOSTメソッドでアクセスがあるとここに入る。
+* ポストのパラメータにpayloadがあるかそうかで分岐してスラッシュコマンドからなのかボタンからなのかを判断。
+*/
 function doPost(e) {
   console.log("doPost(e):\n" + e);
   if (e.parameter.payload) { //ボタンから
@@ -27,7 +32,8 @@ function doPost(e) {
       return ContentService.createTextOutput("ごめんなさい。エラーが発生しました。/nもう一度最初からやり直してください。");
     }
     properties.deleteProperty(value);
-
+    const counter = parseInt(properties.getProperty("counter"),10);
+    
     if (name == "no") {
       return ContentService.createTextOutput("終了しました");
     }
@@ -35,16 +41,18 @@ function doPost(e) {
       //ブロックLINEのみにポスト
       record('0',text,displayName,realName,userId);
       sendHttpPostToLINEBot(0,text,realName + "(" + displayName + ")");
-      slackPost(realName + "(" + displayName + ")" + "がブロックLINEへの周知を行いました", text);
+      slackPost(realName + "(" + displayName + ")" + "がブロックLINEへの周知を行いました。", text);
+      properties.setProperty("counter", counter + 1);
       return ContentService.createTextOutput(text + "\n\nをブロックLINEのみに周知しました。");
     }
     else if (name == "yes1") {
-      //ブロックLINE，全寮LINE，discordへポスト
+      //ブロックLINE，discordへポスト
       record('1',text,displayName,realName,userId);
       sendHttpPostToLINEBot(1,text,realName + "(" + displayName + ")");
-      slackPost(realName + "(" + displayName + ")" + "が全寮LINE，discord，ブロックLINEへの周知を行いました",text);
+      slackPost(realName + "(" + displayName + ")" + "がdiscord，ブロックLINEとdiscordへの周知を行いました。",text);
       discordPost(text);
-      return ContentService.createTextOutput(text + "\n\nを全寮LINE，discord，ブロックLINEへ周知しました。");
+      properties.setProperty("counter", counter+1);
+      return ContentService.createTextOutput(text + "\n\nをdiscord，ブロックLINEへ周知しました。");
     }
     return ContentService.createTextOutput("エラーが発生しました。\nもう一度最初から操作してください\n" + JSON.stringify(e));
   }
@@ -78,7 +86,7 @@ function doPost(e) {
           //ボタン1
           {
             "name": "yes1",
-            "text": "全寮LINE,discord,ブロックLINE",
+            "text": "discord,ブロックLINE",
             "type": "button",
             "value": messageId
           },
@@ -118,4 +126,9 @@ function record(mode,text,displayName,realName,userId){
   sheet.getRange(row, 6).setValue(text);
   
   return 0;
+}
+
+function resetcounter(){
+  properties.setProperty("counter", 1);
+  return;
 }

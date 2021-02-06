@@ -15,7 +15,7 @@ function discordPost(content) {
 
   };
   const response = UrlFetchApp.fetch(discordWebhookUrl, params);
-
+  console.log(response);
   //Logger.log(response.getContentText());
   return response;
 }

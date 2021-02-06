@@ -1,6 +1,6 @@
 const LINEBotUrl = properties.getProperty('LINEBotUrl');
 
-function sendHttpPostToLINEBot(mode, message, from) {
+function sendHttpPostToLINEBot(mode,message,from) {
   const options =
   {
     "method": "post",
@@ -11,10 +11,9 @@ function sendHttpPostToLINEBot(mode, message, from) {
         "message": message,  //周知する文字列
         "from": from　//発言者かグループの名前
       }),
-    muteHttpExceptions: true
+    muteHttpExceptions:true
   };
   const response = UrlFetchApp.fetch(LINEBotUrl, options);
-
-  //Logger.log(response);
+  console.log(response);
   return response;
 }
