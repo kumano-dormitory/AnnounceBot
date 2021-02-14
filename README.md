@@ -30,15 +30,7 @@
 1. おしまい
 
 ## 使い方
-### 外部からSlackに周知する場合
-GASの`Current web app URL`に下のoptionをつけてPOST
-``` JS
-{
-    "mode": mode,        //0:ブロックLINEのみ，1:全寮LINEにも送る
-    "message": message,  //周知する文字列
-    "from": from    　   //発言者かグループの名前
-}
-```
+
 ### slackから周知する場合
 Slackの設定2で作ったスラッシュコマンドの引数に周知内容を書いてbotの指示に従う。
 
