@@ -1,8 +1,8 @@
-const discordWebhookUrl = properties.getProperty('discordWebhookUrl');
-const discordWebhookToken = properties.getProperty('discordWebhookToken');
+//const discordWebhookUrl = properties.getProperty('discordWebhookUrl');
+//const discordWebhookToken = properties.getProperty('discordWebhookToken');
 
 function discordPost(content) {
-  const params = {
+  /*const params = {
     'method': 'post',
     'payload': {
       'token': discordWebhookToken,  //discordのwebhooksのトークン
@@ -17,5 +17,6 @@ function discordPost(content) {
   const response = UrlFetchApp.fetch(discordWebhookUrl, params);
   console.log(response);
   //Logger.log(response.getContentText());
-  return response;
+  */
+  return;
 }

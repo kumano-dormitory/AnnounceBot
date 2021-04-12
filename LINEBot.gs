@@ -1,7 +1,7 @@
-const LINEBotUrl = properties.getProperty('LINEBotUrl');
+//const LINEBotUrl = properties.getProperty('LINEBotUrl');
 
 function sendHttpPostToLINEBot(mode,message,from) {
-  const options =
+  /*const options =
   {
     "method": "post",
     'contentType': 'application/json',
@@ -15,5 +15,6 @@ function sendHttpPostToLINEBot(mode,message,from) {
   };
   const response = UrlFetchApp.fetch(LINEBotUrl, options);
   console.log(response);
-  return response;
+  */
+  return;
 }

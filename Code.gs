@@ -1,6 +1,5 @@
 const properties = PropertiesService.getScriptProperties();
 
-
 /*
 * slackからPOSTメソッドでアクセスがあるとここに入る。
 * ポストのパラメータにpayloadがあるかそうかで分岐してスラッシュコマンドからなのかボタンからなのかを判断。
@@ -13,7 +12,7 @@ function doPost(e) {
     const name = payload["actions"][0]["name"];
     const value = payload["actions"][0]["value"];
     const userId = payload["user"]["id"];
-    const user = JSON.parse(UrlFetchApp.fetch("https://slack.com/api/users.profile.get?token=" + slackAccessToken + "&user=" + userId + "&pretty=1"));
+    const user = getSlackUser(userId);
     const displayName = user.profile.display_name;
     const realName = user.profile.real_name;
     let text;
@@ -67,11 +66,11 @@ function doPost(e) {
     properties.setProperty(messageId, e.parameter.text);
 
     if (e.parameter.text == "") {
-      return ContentService.createTextOutput("こんにちは。周知さんです。\nLINE等に周知を行うには `/announce` のあとに周知内容を入力して送信してください");
+      return ContentService.createTextOutput("こんにちは。周知にゃんです。\nLINE等に周知を行うには `/announce` のあとに周知内容を入力して送信してください");
     }
 
     const data = {
-      "text": "こんにちは。周知さんです。\n以下の内容の周知先を選択してください。周知をしない場合・修正を行う場合は `終了` ボタンを押して終了してください。", //アタッチメントではない通常メッセージ
+      "text": "こんにちは。周知にゃんです。\n以下の内容の周知先を選択してください。周知をしない場合・修正を行う場合は `終了` ボタンを押して終了してください。", //アタッチメントではない通常メッセージ
       "response_type": "ephemeral", // ここを"ephemeral"から"in_chanel"に変えると他の人にも表示されるらしい（？）
       //アタッチメント部分
       "attachments": [{
