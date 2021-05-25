@@ -1,6 +1,7 @@
 const LINEBotUrl = properties.getProperty('LINEBotUrl');
 
 function sendHttpPostToLINEBot(mode, message, from) {
+  const parsedMessage = SlackEmojiToUnicode(message);
   const options =
   {
     "method": "post",
@@ -8,7 +9,7 @@ function sendHttpPostToLINEBot(mode, message, from) {
     "payload": JSON.stringify(
       {
         "mode": mode, //0:ブロックLINEのみ，1:全寮LINEとdiscordにも送る
-        "message": message,  //周知する文字列
+        "message": parsedMessage,  //周知する文字列
         "from": from　//発言者かグループの名前
       }),
     muteHttpExceptions: true
