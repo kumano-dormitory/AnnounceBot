@@ -1,6 +1,11 @@
+/*
+参考：https://qiita.com/dbgso/items/54cfa5c79d119888747c
+ */
+
 function SlackEmojiToUnicode(message) {
     for (const iterator in emoji_unicode) {
-        message = message.replace(':' + iterator + ':', emoji_unicode[iterator]);
+        const regexp = new RegExp(':' + iterator + ':', 'g');
+        message = message.replace(regexp, emoji_unicode[iterator]);
     }
     return message;
 }
