@@ -17,7 +17,7 @@ function doPost(e) {
     const displayName = user.profile.display_name;
     const realName = user.profile.real_name;
     let text;
-    
+
     //slack以外からのアクセスでないかチェック
     if (token != slackVerificationToken) {
       throw new Error(e.parameter.token);
@@ -32,32 +32,32 @@ function doPost(e) {
       return ContentService.createTextOutput("ごめんなさい。エラーが発生しました。/nもう一度最初からやり直してください。");
     }
     properties.deleteProperty(value);
-    const counter = parseInt(properties.getProperty("counter"),10);
-    
+    const counter = parseInt(properties.getProperty("counter"), 10);
+
     if (name == "no") {
       return ContentService.createTextOutput("終了しました");
     }
     else if (name == "yes2") {
       //ブロックLINEのみにポスト
-      record('0',text,displayName,realName,userId);
-      sendHttpPostToLINEBot(0,text,realName + "(" + displayName + ")");
+      record('0', text, displayName, realName, userId);
+      sendHttpPostToLINEBot(0, text, realName + "(" + displayName + ")");
       slackPost(realName + "(" + displayName + ")" + "がブロックLINEへの周知を行いました。", text);
       properties.setProperty("counter", counter + 1);
       return ContentService.createTextOutput(text + "\n\nをブロックLINEのみに周知しました。");
     }
     else if (name == "yes1") {
       //ブロックLINE，discordへポスト
-      record('1',text,displayName,realName,userId);
-      sendHttpPostToLINEBot(1,text,realName + "(" + displayName + ")");
-      slackPost(realName + "(" + displayName + ")" + "がdiscord，ブロックLINEとdiscordへの周知を行いました。",text);
+      record('1', text, displayName, realName, userId);
+      sendHttpPostToLINEBot(1, text, realName + "(" + displayName + ")");
+      slackPost(realName + "(" + displayName + ")" + "がdiscord，ブロックLINEとdiscordへの周知を行いました。", text);
       discordPost(text);
-      properties.setProperty("counter", counter+1);
+      properties.setProperty("counter", counter + 1);
       return ContentService.createTextOutput(text + "\n\nをdiscord，ブロックLINEへ周知しました。");
     }
     return ContentService.createTextOutput("エラーが発生しました。\nもう一度最初から操作してください\n" + JSON.stringify(e));
   }
-  
-  else if(e.parameter.team_domain){　//slash command
+
+  else if (e.parameter.team_domain) {　//slash command
     //slack以外からのアクセスでないかチェック
     if (e.parameter.token != slackVerificationToken) {
       throw new Error(e.parameter.token);
@@ -67,7 +67,21 @@ function doPost(e) {
     properties.setProperty(messageId, e.parameter.text);
 
     if (e.parameter.text == "") {
-      return ContentService.createTextOutput("こんにちは。周知さんです。\nLINE等に周知を行うには `/announce` のあとに周知内容を入力して送信してください");
+      return ContentService.createTextOutput("こんにちは。周知さんです。\nブロックLINEに周知を行うには `/announce` のあとに周知内容を入力して送信してください");
+    }
+    if (e.parameter.text.indexOf("文責") == -1) {
+      const data = {
+        "text": "こんにちは。周知さんです。\n「文責」を含まない内容は周知さんで送ることができません", //アタッチメントではない通常メッセージ
+        "response_type": "ephemeral", // ここを"ephemeral"から"in_chanel"に変えると他の人にも表示されるらしい（？）
+        //アタッチメント部分
+        "attachments": [{
+          "title": "周囲しようとした内容",//　アタッチメントのタイトル
+          "text": e.parameter.text,//アタッチメント内テキスト
+          "color": "#00bfff", //左の棒の色を指定する
+          "attachment_type": "default",
+        }]
+      };
+      return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
     }
 
     const data = {
@@ -83,6 +97,7 @@ function doPost(e) {
         "attachment_type": "default",
         // ボタン部分
         "actions": [
+          /*
           //ボタン1
           {
             "name": "yes1",
@@ -90,10 +105,11 @@ function doPost(e) {
             "type": "button",
             "value": messageId
           },
+          */
           //ボタン2
           {
             "name": "yes2",
-            "text": "ブロックLINEのみ(寮外秘の内容)",
+            "text": "ブロックLINEのみに周知",
             "type": "button",
             "value": messageId
           },
@@ -111,12 +127,12 @@ function doPost(e) {
   }
 }
 
-function record(mode,text,displayName,realName,userId){
+function record(mode, text, displayName, realName, userId) {
   const book = SpreadsheetApp.openById(properties.getProperty('SpreadSheetId'));
   let sheet = book.getSheetByName("シート1");
   const range = sheet.getDataRange();
   const row = range.getLastRow() + 1;
-  
+
   const time = Utilities.formatDate(new Date(), 'Asia/Tokyo', 'yyyy/MM/dd/HH:mm:ss.SSS');
   sheet.getRange(row, 1).setValue(time);
   sheet.getRange(row, 2).setValue(displayName);
@@ -124,11 +140,11 @@ function record(mode,text,displayName,realName,userId){
   sheet.getRange(row, 4).setValue(userId);
   sheet.getRange(row, 5).setValue(mode);
   sheet.getRange(row, 6).setValue(text);
-  
+
   return 0;
 }
 
-function resetcounter(){
+function resetcounter() {
   properties.setProperty("counter", 1);
   return;
 }
